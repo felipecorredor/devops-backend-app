@@ -14,9 +14,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Railway CLI
-        run: npm install -g @railway/cli
+        run: |
+          npm install -g @railway/cli || curl -fsSL https://cli.railway.app/install.sh | sh
 
-      - name: Verify Railway auth (opcional)
+      - name: Verify authentication
         run: railway whoami
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
