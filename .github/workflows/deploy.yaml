@@ -1,4 +1,4 @@
-name: Deploy to Railway
+name: Create Railway Project and Deploy
 
 on:
   push:
@@ -13,22 +13,42 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 1. Instalar Railway CLI
       - name: Install Railway CLI
-        run: |
-          npm install -g @railway/cli || curl -fsSL https://cli.railway.app/install.sh | sh
+        run: npm install -g @railway/cli
 
-      - name: Verify token injection (seguro)
+      # 2. Autenticación (usa token de CUENTA)
+      - name: Login to Railway
+        run: railway login --ci-token $RAILWAY_TOKEN
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+
+      # 3. Crear proyecto (si no existe)
+      - name: Create Railway Project
+        id: create_project
         run: |
-          if [ -z "$RAILWAY_TOKEN" ]; then
-            echo "::warning::Token is empty or not set!"
+          if ! railway project list | grep -q "$PROJECT_NAME"; then
+            railway project create $PROJECT_NAME
+            echo "::set-output name=project_created::true"
           else
-            echo "::add-mask::$RAILWAY_TOKEN"
-            echo "Token is set (hidden for security)"
+            echo "::set-output name=project_created::false"
           fi
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT }}
+          PROJECT_NAME: "Devops-backend-API"
 
-      - name: Deploy
-        run: railway up --detach
+      # 4. Obtener ID del proyecto
+      - name: Get Project ID
+        id: project_id
+        run: |
+          PROJECT_ID=$(railway project list | grep "$PROJECT_NAME" | awk '{print $1}')
+          echo "::set-output name=id::$PROJECT_ID"
+          echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_PROJECT }}
+          PROJECT_NAME: "Devops-backend-API"
+
+      # 5. Desplegar aplicación
+      - name: Deploy to Railway
+        run: |
+          railway up --service fastapi-app --detach
+        env:
+          RAILWAY_PROJECT_ID: ${{ env.PROJECT_ID }}
