@@ -2,8 +2,8 @@ version: "3.8" # Versión de Docker Compose
 
 services:
   backend: # Nombre del servicio
+    image: fastapi-app
     build: . # Usa el Dockerfile en este directorio para construir la imagen
-
     container_name: fastapi_app # Nombre del contenedor
 
     ports:

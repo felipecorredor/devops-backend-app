@@ -1,0 +1,20 @@
+# Archivos y carpetas de Python que no deberían ir en la imagen
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
+
+# Dependencias y archivos temporales
+*.log
+*.sqlite3
+
+# Carpeta de base de datos local (si es usada solo en desarrollo)
+db/
+
+# Archivos específicos de Docker y GitHub
+docker-compose.yml
+.dockerignore
+.git
+.gitignore

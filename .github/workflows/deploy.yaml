@@ -1,27 +1,24 @@
-name: Deploy FastAPI to Fly.io
+name: Deploy to Railway
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production # Asegúrate de que coincide con el nombre de tu Environment en GitHub
+    environment: production
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install Fly.io CLI # 🛠️ Instala flyctl
-        run: |
-          curl -L https://fly.io/install.sh | sh
-          export PATH=$HOME/.fly/bin:$PATH
-          echo "$HOME/.fly/bin" >> $GITHUB_PATH  # Agrega flyctl al PATH
+      - name: Verify Railway auth
+        run: railway whoami
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
-      - name: Authenticate with Fly.io # 🔑 Autenticación correcta
-        run: flyctl auth login --access-token "${{ secrets.FLY_API_TOKEN }}"
-
-      - name: Deploy to Fly.io # 🚀 Desplegar aplicación
-        run: flyctl deploy --remote-only
+      - name: Deploy
+        run: railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
