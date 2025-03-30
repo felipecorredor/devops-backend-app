@@ -1,0 +1,18 @@
+version: "3.8" # Versión de Docker Compose
+
+services:
+  backend: # Nombre del servicio
+    build: . # Usa el Dockerfile en este directorio para construir la imagen
+
+    container_name: fastapi_app # Nombre del contenedor
+
+    ports:
+      - "8000:8000" # Mapea el puerto 8000 del contenedor al 8000 del host
+
+    volumes:
+      - .:/app # Sincroniza los archivos del proyecto con el contenedor
+
+    environment:
+      - PYTHONUNBUFFERED=1 # Muestra logs en tiempo real
+
+    restart: always # Reinicia el contenedor si falla
