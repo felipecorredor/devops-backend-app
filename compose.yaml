@@ -15,4 +15,4 @@ services:
     environment:
       - PYTHONUNBUFFERED=1 # Muestra logs en tiempo real
 
-    restart: always # Reinicia el contenedor si falla
+    restart: unless-stopped # Reinicia el contenedor si falla
