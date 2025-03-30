@@ -4,10 +4,6 @@ on:
   push:
     branches: [main]
 
-env:
-  # Nombre por defecto (formato: 'nombre-repo-prod')
-  DEFAULT_PROJECT_NAME: "${{ github.repository_name }}-prod"
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -17,35 +13,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. Instalar CLI de Railway
       - name: Install Railway CLI
-        run: |
-          npm install -g @railway/cli || curl -fsSL https://cli.railway.app/install.sh | sh
+        run: npm install -g @railway/cli@latest
 
-      # 2. Autenticación
       - name: Login to Railway
-        run: railway login --ci-token $RAILWAY_TOKEN
+        run: |
+          echo "RAILWAY_TOKEN=${{ secrets.RAILWAY_TOKEN }}" >> $GITHUB_ENV
+          railway login --browserless <<< "$RAILWAY_TOKEN"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      # 3. Definir nombre del proyecto (prioridades: secret > variable > default)
-      - name: Set Project Name
-        id: set_name
-        run: |
-          PROJECT_NAME="${{ secrets.RAILWAY_PROJECT_NAME || vars.RAILWAY_PROJECT_NAME || env.DEFAULT_PROJECT_NAME }}"
-          echo "PROJECT_NAME=${PROJECT_NAME}" >> $GITHUB_ENV
-          echo "::notice::Using project name: ${PROJECT_NAME}"
-
-      # 4. Crear proyecto si no existe
+      # Configuración del proyecto
       - name: Setup Project
         run: |
           if ! railway project list | grep -q "$PROJECT_NAME"; then
             railway project create "$PROJECT_NAME"
-            echo "::notice::Created new project: $PROJECT_NAME"
-          else
-            echo "::notice::Using existing project: $PROJECT_NAME"
           fi
+          railway link $(railway project list | grep "$PROJECT_NAME" | awk '{print $1}')
+        env:
+          PROJECT_NAME: "${{ github.repository_name }}-prod"
 
-      # 5. Desplegar
-      - name: Deploy Application
-        run: railway up --service fastapi-app --detach
+      # Despliegue
+      - name: Deploy
+        run: railway up --detach
