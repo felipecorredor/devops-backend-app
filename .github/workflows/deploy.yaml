@@ -13,7 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify Railway auth
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Verify Railway auth (opcional)
         run: railway whoami
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
