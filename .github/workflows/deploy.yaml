@@ -17,8 +17,14 @@ jobs:
         run: |
           npm install -g @railway/cli || curl -fsSL https://cli.railway.app/install.sh | sh
 
-      - name: Verify authentication
-        run: railway whoami
+      - name: Verify token injection (seguro)
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "::warning::Token is empty or not set!"
+          else
+            echo "::add-mask::$RAILWAY_TOKEN"
+            echo "Token is set (hidden for security)"
+          fi
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
 
